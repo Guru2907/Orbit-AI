@@ -21,3 +21,21 @@ for i, chunk in enumerate(results):
 
 sources = get_unique_sources(results)
 print(f"Unique sources: {sources}")
+
+print("\n\n=== Testing llm.py ===\n")
+
+from app.llm import generate_answer
+
+# Test 1 — a question that SHOULD be answered from the docs
+result = generate_answer("How do I cancel my subscription?")
+print("Question: How do I cancel my subscription?")
+print(f"Answer: {result['answer']}")
+print(f"Sources: {result['sources']}")
+
+print()
+
+# Test 2 — a question that should trigger the fallback
+result2 = generate_answer("What is the capital of France?")
+print("Question: What is the capital of France?")
+print(f"Answer: {result2['answer']}")
+print(f"Sources: {result2['sources']}")
