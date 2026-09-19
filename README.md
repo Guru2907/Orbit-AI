@@ -2,12 +2,6 @@
 
 A RAG-powered customer support chatbot built for a fictional SaaS product called Flowspace. It answers user questions strictly from a set of support documents, refuses to answer anything outside that knowledge base, and sits behind its own authentication system so only signed-up users can query it.
 
-Live app: https://orbit-ai-flowspace.vercel.app
-
-Backend: https://orbit-ai-mjug.onrender.com
-
-The backend is on Render's free tier, so it sleeps after ~15 minutes of no traffic. First request after that can take up to a minute while it wakes back up. Not a bug, just how free hosting works.
-
 ## Features
 
 - Retrieval-Augmented Generation pipeline: support documents are chunked, embedded, stored, and retrieved by similarity before any answer is generated
