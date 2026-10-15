@@ -1,11 +1,17 @@
-fastapi
-uvicorn[standard]
-python-dotenv
-google-genai
-chromadb
-pydantic
-sqlalchemy
-passlib[bcrypt]
+# Runtime dependencies, pinned to the versions the project is developed and tested with.
+# Only direct dependencies are pinned; their sub-dependencies are resolved by pip.
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+python-dotenv==1.2.2
+google-genai==2.17.0
+chromadb==1.5.9
+pydantic==2.13.4
+sqlalchemy==2.0.51
+passlib[bcrypt]==1.7.4
+# passlib 1.7.4 is unmaintained and has known problems with newer bcrypt releases,
+# so bcrypt stays at 4.0.1 (the version this project originally pinned).
 bcrypt==4.0.1
-python-jose[cryptography]
-psycopg2-binary
+python-jose[cryptography]==3.5.0
+psycopg2-binary==2.9.12
+# Imported directly by app/llm.py (network error handling).
+httpx==0.28.1
