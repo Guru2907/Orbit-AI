@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import OrbitMark from './OrbitMark.jsx'
 import { askOrbit } from '../api.js'
+import { isAuthError } from '../apiClient.js'
 
 const quickPrompts = [
   'What are the pricing plans?',
@@ -10,7 +11,7 @@ const quickPrompts = [
   'How do I enable two-factor authentication?',
 ]
 
-export default function ChatPage({ token, email, onLogout }) {
+export default function ChatPage({ token, email, onLogout, onSessionExpired }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,6 +30,10 @@ export default function ChatPage({ token, email, onLogout }) {
       const data = await askOrbit(question, token)
       setMessages((prev) => [...prev, { role: 'bot', text: data.answer, sources: data.sources }])
     } catch (err) {
+      if (isAuthError(err)) {
+        onSessionExpired()
+        return
+      }
       setMessages((prev) => [...prev, { role: 'bot', text: err.message, sources: [], isError: true }])
     } finally {
       setLoading(false)

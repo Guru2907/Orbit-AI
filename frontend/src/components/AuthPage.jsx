@@ -2,7 +2,7 @@ import { useState } from 'react'
 import OrbitMark from './OrbitMark.jsx'
 import { login, signup } from '../api.js'
 
-export default function AuthPage({ initialMode, onAuthSuccess, onBack }) {
+export default function AuthPage({ initialMode, notice, onAuthSuccess, onBack }) {
   const [mode, setMode] = useState(initialMode || 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,6 +49,10 @@ export default function AuthPage({ initialMode, onAuthSuccess, onBack }) {
             {mode === 'login' ? 'Log in to chat with Orbit.' : 'Takes about ten seconds.'}
           </p>
 
+          {notice && !error && (
+            <p className="mt-4 rounded-lg bg-brandsoft px-3 py-2 text-[13px] text-brand">{notice}</p>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-ink">Email</label>
@@ -57,7 +61,7 @@ export default function AuthPage({ initialMode, onAuthSuccess, onBack }) {
             </div>
             <div>
               <label className="mb-1.5 block text-[13px] font-medium text-ink">Password</label>
-              <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
+              <input type="password" required minLength={mode === 'signup' ? 8 : undefined} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
                 className="w-full rounded-xl border border-line bg-bg px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition" />
             </div>
 
