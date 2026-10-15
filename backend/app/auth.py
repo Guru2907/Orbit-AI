@@ -26,6 +26,7 @@ def create_access_token(email):
     return token
 
 def decode_access_token(token):
-    payload = jwt.decode(token,JWT_SECRET,algorithms=[ALGORITHM])
+    # require_exp: reject tokens without an expiry, even if correctly signed.
+    payload = jwt.decode(token,JWT_SECRET,algorithms=[ALGORITHM],options={"require_exp": True})
     payload_email = payload["sub"]
     return payload_email
