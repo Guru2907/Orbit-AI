@@ -41,16 +41,29 @@ def is_fallback(text):
     return text.strip().strip(FALLBACK_QUOTES).strip() == NO_INFO_MESSAGE
 
 
+def escape_untrusted(text):
+    """
+    XML character-data escaping for text this code did not write (the user's question,
+    document text, source names). `&` and `<` are the only characters that can start
+    markup, so after this neither a question nor a document can open or close a
+    <context> or <question> tag of its own. `>` is left as is: it cannot start a tag,
+    and the docs use it in menu paths like "Settings > Billing".
+    """
+    return text.replace("&", "&amp;").replace("<", "&lt;")
+
+
 def build_context(chunks):
     context_list = []
     for chunk in chunks:
-        piece = f"<context>\nSource: {chunk['source']}\n{chunk['text']}\n</context>"
+        source = escape_untrusted(chunk["source"]).replace('"', "&quot;")
+        piece = f'<context source="{source}">\n{escape_untrusted(chunk["text"])}\n</context>'
         context_list.append(piece)
     context_string = "\n\n".join(context_list)
     return context_string
 
 def build_prompt(question, context_string):
-    final_prompt = f"{context_string}\nQuestion: {question}"
+    """Retrieved docs first, then the user's question in its own block, both escaped."""
+    final_prompt = f"{context_string}\n\n<question>\n{escape_untrusted(question)}\n</question>"
     return final_prompt
 
 def generate_answer(question):

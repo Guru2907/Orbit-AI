@@ -120,14 +120,15 @@ def test_get_unique_sources_dedupes_preserving_order():
 
 
 def test_build_context_and_prompt_format():
+    # Step 7: source moved into the tag and the question got its own block (see test_prompt_injection.py).
     chunks = [{"source": "a.md", "text": "Alpha"}, {"source": "b.md", "text": "Beta"}]
     context = app.llm.build_context(chunks)
     assert context == (
-        "<context>\nSource: a.md\nAlpha\n</context>"
+        '<context source="a.md">\nAlpha\n</context>'
         "\n\n"
-        "<context>\nSource: b.md\nBeta\n</context>"
+        '<context source="b.md">\nBeta\n</context>'
     )
-    assert app.llm.build_prompt("Q?", context) == f"{context}\nQuestion: Q?"
+    assert app.llm.build_prompt("Q?", context) == f"{context}\n\n<question>\nQ?\n</question>"
 
 
 def test_generate_answer_without_chunks_skips_llm(monkeypatch):
