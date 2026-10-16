@@ -94,6 +94,20 @@ test('401 without a body falls back to the session-expired message', async () =>
   assert.equal(err.message, MESSAGES.sessionExpired)
 })
 
+// --- 429 rate limiting ----------------------------------------------------------
+
+test('429 from the backend shows its detail and is not an auth error', async () => {
+  const err = await rejection(parseResponse(jsonResponse(429, { detail: 'Too many requests. Please try again later.' })))
+  assert.equal(err.status, 429)
+  assert.equal(err.message, 'Too many requests. Please try again later.')
+  assert.equal(isAuthError(err), false)
+})
+
+test('429 without a JSON body (e.g. from a proxy) falls back to the rate-limit message', async () => {
+  const err = await rejection(parseResponse(textResponse(429, 'Too Many Requests')))
+  assert.equal(err.message, MESSAGES.rateLimited)
+})
+
 // --- 422 validation -------------------------------------------------------------
 
 test('422 shows the readable validation message without the "Value error" prefix', async () => {

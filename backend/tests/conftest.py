@@ -192,9 +192,11 @@ def fake_answer(monkeypatch):
 
 @pytest.fixture
 def client(monkeypatch, fake_answer):
-    """TestClient with a fresh empty database and the startup indexing stubbed out."""
+    """TestClient with a fresh empty database, empty rate limiters, and the startup indexing stubbed out."""
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
+    for limiter in (app.main.chat_limiter, app.main.login_ip_limiter, app.main.login_failure_limiter):
+        limiter.reset()
     monkeypatch.setattr(app.main, "sync_index", lambda force=False: False)
     with TestClient(app.main.app) as test_client:
         yield test_client

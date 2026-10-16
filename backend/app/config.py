@@ -5,6 +5,7 @@ from here instead of calling load_dotenv() everywhere.
 
 import os
 from dotenv import load_dotenv
+from app.rate_limit import parse_rate_limit
 
 load_dotenv()  
 
@@ -29,6 +30,11 @@ def parse_origins(value):
 
 
 CORS_ORIGINS = parse_origins(os.getenv("CORS_ORIGINS", "")) or DEFAULT_CORS_ORIGINS
+
+# Rate limits, as "<requests>/<seconds>". See app/rate_limit.py for what they do and don't cover.
+CHAT_RATE_LIMIT = parse_rate_limit(os.getenv("CHAT_RATE_LIMIT") or "20/60", "CHAT_RATE_LIMIT")
+LOGIN_RATE_LIMIT = parse_rate_limit(os.getenv("LOGIN_RATE_LIMIT") or "10/60", "LOGIN_RATE_LIMIT")
+LOGIN_FAILURE_LIMIT = parse_rate_limit(os.getenv("LOGIN_FAILURE_LIMIT") or "5/900", "LOGIN_FAILURE_LIMIT")
 
 if not GEMINI_API_KEY:
     raise RuntimeError(

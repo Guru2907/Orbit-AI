@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Depends, HTTPException, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -11,10 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from app.llm import generate_answer, AnswerUnavailableError, is_service_error, log_service_error
 from app.rag import sync_index
 
-from app.config import CORS_ORIGINS
+from app.config import CORS_ORIGINS, CHAT_RATE_LIMIT, LOGIN_RATE_LIMIT, LOGIN_FAILURE_LIMIT
 from app.database import engine, Base, get_db
 from app.model import User
 from app.auth import hash_password, create_access_token, verify_password, decode_access_token
+from app.rate_limit import RateLimiter
 
 Base.metadata.create_all(bind=engine)
 
@@ -62,6 +63,33 @@ MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_BYTES = 72  # bcrypt ignores everything past 72 bytes
 MAX_QUESTION_LENGTH = 1000
 ANSWER_UNAVAILABLE_DETAIL = "Orbit is temporarily unavailable. Please try again."
+RATE_LIMITED_DETAIL = "Too many requests. Please try again later."
+INVALID_LOGIN_DETAIL = "Invalid email or password"
+
+chat_limiter = RateLimiter(*CHAT_RATE_LIMIT)              # per signed-in user
+login_ip_limiter = RateLimiter(*LOGIN_RATE_LIMIT)         # every /login attempt, per client IP
+login_failure_limiter = RateLimiter(*LOGIN_FAILURE_LIMIT)  # failed logins, per attempted email
+
+def rate_limited(retry_after, scope):
+    """The one 429 shape. Logs which limit was hit, never the key (IP or email)."""
+    print(f"Rate limit exceeded: {scope}.")
+    return HTTPException(
+        status_code=429,
+        detail=RATE_LIMITED_DETAIL,
+        headers={"Retry-After": str(retry_after)},
+    )
+
+def client_ip(request: Request):
+    """
+    The direct peer address. X-Forwarded-For is never read here: behind a reverse proxy,
+    run uvicorn with --forwarded-allow-ips=<proxy address> so request.client is the real client.
+    """
+    return request.client.host if request.client else "unknown"
+
+def limit_login_by_ip(request: Request):
+    retry_after = login_ip_limiter.hit(client_ip(request))
+    if retry_after is not None:
+        raise rate_limited(retry_after, "/login per client IP")
 
 def normalize_email(value):
     email = value.strip().lower()
@@ -149,21 +177,31 @@ def signup(request: SignupRequest, db=Depends(get_db)) -> AuthResponse:
     token = create_access_token(email=new_user.email)
     return AuthResponse(token=token, email=new_user.email)
 
-@app.post("/login")
+def login_failed(email):
+    """Counts the failure against the attempted email (whether or not an account exists)."""
+    login_failure_limiter.record(email)
+    return HTTPException(status_code=401, detail=INVALID_LOGIN_DETAIL)
+
+@app.post("/login", dependencies=[Depends(limit_login_by_ip)])
 def login(request: LoginRequest, db=Depends(get_db)) -> AuthResponse:
+    # Checked before the password, so a correct guess after the limit still gets 429.
+    retry_after = login_failure_limiter.retry_after(request.email)
+    if retry_after is not None:
+        raise rate_limited(retry_after, "/login failed attempts per email")
+
     matching_users = find_users_by_email(db, request.email)
     if len(matching_users) > 1:
         # Legacy accounts that differ only by email case: refuse rather than pick one.
         user_ids = [user.id for user in matching_users]
         print(f"Login refused: user ids {user_ids} share a case-insensitive email.")
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise login_failed(request.email)
     if not matching_users:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise login_failed(request.email)
 
     existing_user = matching_users[0]
     password_matches = verify_password(request.password, existing_user.hashed_password)
     if not password_matches:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise login_failed(request.email)
 
     token = create_access_token(email=existing_user.email)
     return AuthResponse(token=token, email=existing_user.email)
@@ -184,8 +222,15 @@ def get_current_user(authorization: str | None = Header(None)):
 
     return email
 
+def limit_chat_by_user(user_email: str = Depends(get_current_user)):
+    """Runs after authentication, so requests with a bad token are rejected without being counted."""
+    retry_after = chat_limiter.hit(user_email.lower())
+    if retry_after is not None:
+        raise rate_limited(retry_after, "/chat per user")
+    return user_email
+
 @app.post("/chat")
-def chat(request: ChatRequest, user_email: str = Depends(get_current_user)) -> ChatResponse:
+def chat(request: ChatRequest, user_email: str = Depends(limit_chat_by_user)) -> ChatResponse:
     try:
         result = generate_answer(request.question)
     except AnswerUnavailableError:

@@ -8,6 +8,7 @@ export const MESSAGES = {
   unavailable: 'Orbit is temporarily unavailable. Please try again.',
   server: 'Orbit ran into a problem. Please try again.',
   sessionExpired: 'Your session has expired. Please log in again.',
+  rateLimited: 'Too many requests. Please try again later.',
 }
 
 export class ApiError extends Error {
@@ -43,6 +44,7 @@ export function messageFromDetail(detail) {
 function fallbackMessage(status) {
   if (status === 401) return MESSAGES.sessionExpired
   if (status === 422 || status === 400) return MESSAGES.validation
+  if (status === 429) return MESSAGES.rateLimited
   if (status === 503) return MESSAGES.unavailable
   if (status >= 500) return MESSAGES.server
   return MESSAGES.generic
