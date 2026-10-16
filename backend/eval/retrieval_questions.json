@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Retrieval evaluation set for backend/docs. expected_sources lists every doc that contains information needed to answer; it is empty when the docs do not answer the question. Categories: single (one doc answers it), multi (needs more than one doc), ambiguous (vague question; any listed doc is a reasonable match), unanswerable (on-topic but not in the docs), out_of_scope (not about Flowspace).",
+  "questions": [
+    {"id": "q01", "category": "single", "question": "How much does the Pro plan cost per user if I pay monthly?", "expected_sources": ["pricing.md"]},
+    {"id": "q02", "category": "single", "question": "How much file storage comes with the Business plan?", "expected_sources": ["pricing.md"]},
+    {"id": "q03", "category": "single", "question": "Do I need a credit card to start the free trial?", "expected_sources": ["pricing.md"]},
+    {"id": "q04", "category": "single", "question": "How long does it take for a refund to reach my original payment method?", "expected_sources": ["refund_policy.md"]},
+    {"id": "q05", "category": "single", "question": "Can I get a refund if my account was suspended for violating the Terms of Service?", "expected_sources": ["refund_policy.md"]},
+    {"id": "q06", "category": "single", "question": "How many days after being charged can I still request a full refund?", "expected_sources": ["refund_policy.md"]},
+    {"id": "q07", "category": "single", "question": "How do I cancel my subscription?", "expected_sources": ["cancel_subscription.md"]},
+    {"id": "q08", "category": "single", "question": "How long is my data kept after I downgrade?", "expected_sources": ["cancel_subscription.md"]},
+    {"id": "q09", "category": "single", "question": "Do I keep access to paid features after I cancel?", "expected_sources": ["cancel_subscription.md"]},
+    {"id": "q10", "category": "single", "question": "How do I invite a teammate to my workspace?", "expected_sources": ["team_invites.md"]},
+    {"id": "q11", "category": "single", "question": "How long do invite links stay valid?", "expected_sources": ["team_invites.md"]},
+    {"id": "q12", "category": "single", "question": "What can someone with the Viewer role do?", "expected_sources": ["team_invites.md"]},
+    {"id": "q13", "category": "single", "question": "Can a Member access billing or remove other members?", "expected_sources": ["team_invites.md"]},
+    {"id": "q14", "category": "single", "question": "How do I turn on two-factor authentication?", "expected_sources": ["account_security.md"]},
+    {"id": "q15", "category": "single", "question": "What are the password requirements for my account?", "expected_sources": ["account_security.md"]},
+    {"id": "q16", "category": "single", "question": "What should I do if I think someone accessed my account without permission?", "expected_sources": ["account_security.md"]},
+    {"id": "q17", "category": "single", "question": "Is my data encrypted at rest?", "expected_sources": ["account_security.md"]},
+    {"id": "q18", "category": "single", "question": "What happens if I go over my API rate limit?", "expected_sources": ["api_limits.md"]},
+    {"id": "q19", "category": "single", "question": "How many API requests per hour does the Free plan allow?", "expected_sources": ["api_limits.md"]},
+    {"id": "q20", "category": "single", "question": "Where do I generate an API key?", "expected_sources": ["api_limits.md"]},
+    {"id": "q21", "category": "single", "question": "Is there a mobile app for iOS or Android?", "expected_sources": ["about_flowspace.md"]},
+    {"id": "q22", "category": "single", "question": "What size of team is Flowspace designed for?", "expected_sources": ["about_flowspace.md"]},
+
+    {"id": "q23", "category": "multi", "question": "I'm on an annual plan. How do I cancel, and will I get any money back?", "expected_sources": ["cancel_subscription.md", "refund_policy.md"]},
+    {"id": "q24", "category": "multi", "question": "Which plan includes SSO, and how much does that plan cost per user?", "expected_sources": ["account_security.md", "pricing.md"], "note": "pricing.md alone also lists SSO under Business, so a pricing.md-only hit can still answer it."},
+    {"id": "q25", "category": "multi", "question": "How many people can I invite on the Free plan, and what does upgrading to Pro cost?", "expected_sources": ["team_invites.md", "pricing.md"]},
+    {"id": "q26", "category": "multi", "question": "What is the API rate limit on the Business plan, and how much does Business cost per user?", "expected_sources": ["api_limits.md", "pricing.md"]},
+    {"id": "q27", "category": "multi", "question": "If I cancel, what happens to boards that go over the Free plan limits, and what are those limits?", "expected_sources": ["cancel_subscription.md", "pricing.md"]},
+    {"id": "q28", "category": "multi", "question": "How do I ask for a refund, and what should I do if my account was hacked?", "expected_sources": ["refund_policy.md", "account_security.md"]},
+
+    {"id": "q29", "category": "ambiguous", "question": "What happens to my data?", "expected_sources": ["cancel_subscription.md", "account_security.md"]},
+    {"id": "q30", "category": "ambiguous", "question": "How much does it cost?", "expected_sources": ["pricing.md"]},
+    {"id": "q31", "category": "ambiguous", "question": "What are the limits?", "expected_sources": ["api_limits.md", "pricing.md", "team_invites.md"]},
+    {"id": "q32", "category": "ambiguous", "question": "Can I change my plan?", "expected_sources": ["cancel_subscription.md", "pricing.md", "team_invites.md"]},
+
+    {"id": "q33", "category": "unanswerable", "question": "Does Flowspace have a Gantt chart or timeline view?", "expected_sources": []},
+    {"id": "q34", "category": "unanswerable", "question": "Can I export my boards to a CSV file?", "expected_sources": []},
+    {"id": "q35", "category": "unanswerable", "question": "Does Flowspace integrate with Slack?", "expected_sources": []},
+    {"id": "q36", "category": "unanswerable", "question": "Is there a discount for students or nonprofits?", "expected_sources": [], "note": "pricing.md only mentions the annual-billing discount, so retrieving it is understandable, but the answer should still be the fallback."},
+    {"id": "q37", "category": "unanswerable", "question": "What is the phone number for Flowspace support?", "expected_sources": []},
+
+    {"id": "q38", "category": "out_of_scope", "question": "What is the capital of France?", "expected_sources": []},
+    {"id": "q39", "category": "out_of_scope", "question": "Write a Python function that reverses a string.", "expected_sources": []},
+    {"id": "q40", "category": "out_of_scope", "question": "Who won the 2018 FIFA World Cup?", "expected_sources": []}
+  ]
+}
